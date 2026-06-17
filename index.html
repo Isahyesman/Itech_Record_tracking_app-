@@ -7,7 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#0D1117"/>
-<title>Record Tracker</title>
+<title>ITech Record Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   body{background:#0D1117;color:#F0F6FC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;}
@@ -461,3 +463,10 @@
 </script>
 </body>
 </html>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/Itech_Record_tracking_app-/sw.js');
+    });
+  }
+</script>
