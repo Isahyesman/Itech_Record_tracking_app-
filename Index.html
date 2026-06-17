@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0D1117"/>
+<title>Record Tracker</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{background:#0D1117;color:#F0F6FC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;}
+  ::-webkit-scrollbar{display:none;}
+  input{outline:none;}
+  button{cursor:pointer;border:none;font-family:inherit;}
+
+  /* Header */
+  .header{position:sticky;top:0;z-index:10;background:rgba(13,17,23,0.95);backdrop-filter:blur(12px);padding:16px 20px 12px;border-bottom:1px solid #2D3748;display:flex;justify-content:space-between;align-items:center;}
+  .header-sub{color:#4A5568;font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+  .header-title{color:#F0F6FC;font-size:22px;font-weight:800;}
+  .add-btn{background:#F5C842;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#0D1117;line-height:1;flex-shrink:0;}
+
+  /* Nav */
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(22,27,34,0.97);backdrop-filter:blur(16px);border-top:1px solid #2D3748;display:grid;grid-template-columns:1fr 1fr;padding:10px 0 24px;z-index:10;}
+  .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;background:none;border:none;}
+  .nav-label{font-size:11px;color:#4A5568;}
+  .nav-label.active{color:#F5C842;font-weight:700;}
+  .nav-dot{width:4px;height:4px;border-radius:50%;background:#F5C842;}
+
+  /* Content */
+  .page{padding:16px 16px 110px;}
+
+  /* Balance Card */
+  .bal-card{background:linear-gradient(135deg,#1a2744 0%,#0f1a35 100%);border-radius:24px;padding:24px;margin-bottom:16px;border:1px solid #1e3461;}
+  .bal-label{color:#4A5568;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+  .bal-amount{font-size:36px;font-weight:800;letter-spacing:-1px;margin-bottom:20px;}
+  .bal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .bal-sub{background:rgba(255,255,255,0.04);border-radius:14px;padding:12px;}
+  .bal-sub-label{color:#4A5568;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+  .bal-sub-amount{font-size:17px;font-weight:700;}
+
+  /* Summary */
+  .summary-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+  .sum-card{background:#161B22;border-radius:18px;padding:16px;border:1px solid;}
+  .sum-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:16px;}
+  .sum-label{color:#8B949E;font-size:12px;margin-bottom:4px;}
+  .sum-amount{font-size:17px;font-weight:700;}
+
+  /* Action Buttons */
+  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;}
+  .act-btn{padding:18px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:800;color:#fff;}
+  .act-btn svg{flex-shrink:0;}
+
+  /* Section title */
+  .sec-title{color:#F0F6FC;font-size:16px;font-weight:700;margin-bottom:14px;}
+
+  /* Empty */
+  .empty{background:#161B22;border-radius:16px;padding:32px;text-align:center;border:1px dashed #2D3748;}
+  .empty-txt{color:#4A5568;font-size:14px;}
+
+  /* Record Row */
+  .rec-row{background:#161B22;border-radius:16px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;border:1px solid #2D3748;}
+  .rec-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+  .rec-info{flex:1;min-width:0;}
+  .rec-note{color:#F0F6FC;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rec-meta{display:flex;align-items:center;gap:6px;margin-top:3px;}
+  .rec-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;}
+  .rec-date{color:#4A5568;font-size:11px;}
+  .rec-right{text-align:right;flex-shrink:0;}
+  .rec-amount{font-weight:700;font-size:15px;}
+  .rec-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:4px;}
+  .rec-btn{border-radius:7px;padding:5px 6px;display:flex;align-items:center;justify-content:center;font-size:12px;}
+
+  /* Filters */
+  .filter-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;}
+  .chip{padding:8px 16px;border-radius:20px;background:#1F2937;color:#8B949E;font-weight:600;font-size:13px;white-space:nowrap;border:none;}
+  .chip.active{background:#F5C842;color:#0D1117;}
+  .chip-out{padding:7px 14px;border-radius:20px;border:1px solid #2D3748;background:transparent;color:#8B949E;font-weight:600;font-size:13px;white-space:nowrap;}
+  .chip-out.active{border-color:#4A9EFF;background:rgba(74,158,255,0.1);color:#4A9EFF;}
+  .count-txt{color:#4A5568;font-size:12px;margin-bottom:12px;}
+
+  /* Modal Overlay */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+  .modal-overlay.open{display:flex;}
+  .modal-sheet{background:#161B22;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 40px;border:1px solid #2D3748;animation:slideUp 0.25s ease;}
+  @keyframes slideUp{from{transform:translateY(50px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal-handle{width:40px;height:4px;background:#2D3748;border-radius:2px;margin:0 auto 20px;}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .modal-title{color:#F0F6FC;font-weight:700;font-size:18px;}
+  .close-btn{background:#1F2937;border-radius:10px;padding:8px;display:flex;color:#8B949E;border:none;}
+
+  /* Toggles */
+  .toggle{display:grid;grid-template-columns:1fr 1fr;gap:0;background:#1F2937;border-radius:14px;padding:4px;margin-bottom:16px;}
+  .tog-btn{padding:12px;border-radius:10px;background:transparent;color:#8B949E;font-weight:700;font-size:15px;border:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all 0.18s;}
+
+  /* Inputs */
+  .inp-label{color:#8B949E;font-size:13px;margin-bottom:6px;display:block;}
+  .inp{width:100%;padding:12px 14px;background:#1F2937;border:2px solid #2D3748;border-radius:12px;color:#F0F6FC;font-size:15px;font-family:inherit;}
+  .inp-lg{font-size:20px;font-weight:700;padding:14px;}
+
+  /* Save button */
+  .save-btn{width:100%;padding:16px;border-radius:14px;font-size:16px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;transition:opacity 0.2s;}
+  .save-btn:disabled{opacity:0.4;}
+
+  /* Colors */
+  .green{color:#10D98B;} .red{color:#FF5C6A;} .gold{color:#F5C842;} .blue{color:#4A9EFF;}
+
+  /* Screen toggle */
+  .screen{display:none;} .screen.active{display:block;}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div>
+    <div class="header-sub">Record Tracker</div>
+    <div class="header-title" id="screen-title">Overview</div>
+  </div>
+  <button class="add-btn" onclick="openModal()">+</button>
+</div>
+
+<!-- Home Screen -->
+<div id="screen-home" class="screen active">
+  <div class="page">
+    <!-- Balance Card -->
+    <div class="bal-card">
+      <div class="bal-label">Total Balance</div>
+      <div class="bal-amount" id="total-bal">₦0</div>
+      <div class="bal-row">
+        <div class="bal-sub">
+          <div class="bal-sub-label">Cash</div>
+          <div class="bal-sub-amount green" id="cash-bal">₦0</div>
+        </div>
+        <div class="bal-sub">
+          <div class="bal-sub-label">Bank</div>
+          <div class="bal-sub-amount blue" id="bank-bal">₦0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-row">
+      <div class="sum-card" style="border-color:rgba(16,217,139,0.2)">
+        <div class="sum-icon" style="background:rgba(16,217,139,0.12)">↓</div>
+        <div class="sum-label">Collected</div>
+        <div class="sum-amount green" id="total-in">₦0</div>
+      </div>
+      <div class="sum-card" style="border-color:rgba(255,92,106,0.2)">
+        <div class="sum-icon" style="background:rgba(255,92,106,0.12)">↑</div>
+        <div class="sum-label">Spent</div>
+        <div class="sum-amount red" id="total-out">₦0</div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-row">
+      <button class="act-btn" style="background:#FF5C6A" onclick="openModal('spend')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        Spend
+      </button>
+      <button class="act-btn" style="background:#10D98B" onclick="openModal('collect')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        Collect
+      </button>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="sec-title">Recent Activity</div>
+    <div id="recent-list">
+      <div class="empty"><div class="empty-txt">No records yet. Tap Spend or Collect!</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- History Screen -->
+<div id="screen-history" class="screen">
+  <div class="page">
+    <div class="filter-scroll">
+      <button class="chip active" onclick="setFilter('type','all',this)">All</button>
+      <button class="chip" onclick="setFilter('type','collect',this)">Collected</button>
+      <button class="chip" onclick="setFilter('type','spend',this)">Spent</button>
+    </div>
+    <div class="filter-scroll">
+      <button class="chip-out active" onclick="setFilter('acc','all',this)">All Accounts</button>
+      <button class="chip-out" onclick="setFilter('acc','cash',this)">Cash</button>
+      <button class="chip-out" onclick="setFilter('acc','bank',this)">Bank</button>
+    </div>
+    <div id="count-txt" class="count-txt"></div>
+    <div id="history-list">
+      <div class="empty"><div class="empty-txt">No records yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="nav">
+  <button class="nav-item" onclick="setScreen('home')" id="nav-home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#F5C842" stroke="none"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span class="nav-label active">Home</span>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-item" onclick="setScreen('history')" id="nav-history">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+    <span class="nav-label">History</span>
+  </button>
+</div>
+
+<!-- Entry Modal -->
+<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">New Record</span>
+      <button class="close-btn" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Spend / Collect -->
+    <div class="toggle">
+      <button class="tog-btn" id="tog-spend" onclick="setFormType('spend')">↑ &nbsp;Spend</button>
+      <button class="tog-btn" id="tog-collect" onclick="setFormType('collect')">↓ &nbsp;Collect</button>
+    </div>
+
+    <!-- Cash / Bank -->
+    <div class="toggle" style="margin-bottom:20px">
+      <button class="tog-btn" id="tog-cash" onclick="setFormAcc('cash')">💵 &nbsp;Cash</button>
+      <button class="tog-btn" id="tog-bank" onclick="setFormAcc('bank')">🏦 &nbsp;Bank</button>
+    </div>
+
+    <!-- Amount -->
+    <label class="inp-label">Amount (₦)</label>
+    <input class="inp inp-lg" id="inp-amount" type="number" inputmode="numeric" placeholder="0.00" oninput="updateSaveBtn()"/>
+
+    <!-- Note -->
+    <label class="inp-label" style="margin-top:14px">Note (optional)</label>
+    <input class="inp" id="inp-note" type="text" placeholder="e.g. Market groceries"/>
+
+    <button class="save-btn" id="save-btn" onclick="handleSave()" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="save-label">Record Spend</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────────
+  let records = JSON.parse(localStorage.getItem('rt_records') || '[]');
+  let editId = null;
+  let formType = 'spend';
+  let formAcc = 'cash';
+  let filterType = 'all';
+  let filterAcc = 'all';
+
+  const save = () => localStorage.setItem('rt_records', JSON.stringify(records));
+  const uid = () => Math.random().toString(36).slice(2) + Date.now();
+  const fmt = n => '₦' + Number(n).toLocaleString('en-NG', {minimumFractionDigits:0});
+  const fmtDate = iso => new Date(iso).toLocaleDateString('en-NG', {day:'2-digit',month:'short',year:'numeric'});
+
+  // ── Screen switching ─────────────────────────────────────────────────────────
+  function setScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.getElementById('screen-title').textContent = name === 'home' ? 'Overview' : 'History';
+
+    // Nav icons
+    const navHome = document.getElementById('nav-home');
+    const navHist = document.getElementById('nav-history');
+    navHome.innerHTML = name === 'home'
+      ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="#F5C842"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-label active">Home</span><div class="nav-dot"></div>`
+      : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="nav-label">Home</span>`;
+    navHist.innerHTML = name === 'history'
+      ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg><span class="nav-label active">History</span><div class="nav-dot"></div>`
+      : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg><span class="nav-label">History</span>`;
+
+    if (name === 'history') renderHistory();
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+  function renderAll() {
+    const cashBal = records.reduce((s,r) => s + (r.account==='cash' ? (r.type==='collect' ? r.amount : -r.amount) : 0), 0);
+    const bankBal = records.reduce((s,r) => s + (r.account==='bank' ? (r.type==='collect' ? r.amount : -r.amount) : 0), 0);
+    const total   = cashBal + bankBal;
+    const totalIn  = records.filter(r=>r.type==='collect').reduce((s,r)=>s+r.amount,0);
+    const totalOut = records.filter(r=>r.type==='spend').reduce((s,r)=>s+r.amount,0);
+
+    document.getElementById('total-bal').textContent = fmt(total);
+    document.getElementById('total-bal').style.color = total >= 0 ? '#F0F6FC' : '#FF5C6A';
+    document.getElementById('cash-bal').textContent  = fmt(cashBal);
+    document.getElementById('cash-bal').style.color  = cashBal >= 0 ? '#10D98B' : '#FF5C6A';
+    document.getElementById('bank-bal').textContent  = fmt(bankBal);
+    document.getElementById('bank-bal').style.color  = bankBal >= 0 ? '#4A9EFF' : '#FF5C6A';
+    document.getElementById('total-in').textContent  = fmt(totalIn);
+    document.getElementById('total-out').textContent = fmt(totalOut);
+
+    const recent = [...records].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+    const rl = document.getElementById('recent-list');
+    rl.innerHTML = recent.length === 0
+      ? `<div class="empty"><div class="empty-txt">No records yet. Tap Spend or Collect!</div></div>`
+      : recent.map(r => rowHTML(r, false)).join('');
+  }
+
+  function renderHistory() {
+    const list = [...records]
+      .sort((a,b)=>new Date(b.date)-new Date(a.date))
+      .filter(r=>(filterType==='all'||r.type===filterType)&&(filterAcc==='all'||r.account===filterAcc));
+    const hl = document.getElementById('history-list');
+    const ct = document.getElementById('count-txt');
+    ct.textContent = list.length > 0 ? list.length + ' record' + (list.length!==1?'s':'') : '';
+    hl.innerHTML = list.length === 0
+      ? `<div class="empty"><div class="empty-txt">No records match this filter.</div></div>`
+      : list.map(r => rowHTML(r, true)).join('');
+  }
+
+  function rowHTML(r, showActions) {
+    const isCollect = r.type === 'collect';
+    const iconBg = isCollect ? 'rgba(16,217,139,0.1)' : 'rgba(255,92,106,0.1)';
+    const iconColor = isCollect ? '#10D98B' : '#FF5C6A';
+    const icon = isCollect ? '↓' : '↑';
+    const badgeBg = r.account==='cash' ? 'rgba(245,200,66,0.12)' : 'rgba(74,158,255,0.12)';
+    const badgeColor = r.account==='cash' ? '#F5C842' : '#4A9EFF';
+    const amtColor = isCollect ? '#10D98B' : '#FF5C6A';
+    const amtSign = isCollect ? '+' : '-';
+    const actions = showActions ? `
+      <div class="rec-actions">
+        <button class="rec-btn" style="background:#1F2937" onclick="editRecord('${r.id}')">✏️</button>
+        <button class="rec-btn" style="background:rgba(255,92,106,0.1)" onclick="deleteRecord('${r.id}')">🗑️</button>
+      </div>` : '';
+    return `
+      <div class="rec-row">
+        <div class="rec-icon" style="background:${iconBg};color:${iconColor};font-size:20px">${icon}</div>
+        <div class="rec-info">
+          <div class="rec-note">${r.note || (isCollect ? 'Income' : 'Expense')}</div>
+          <div class="rec-meta">
+            <span class="rec-badge" style="background:${badgeBg};color:${badgeColor}">${r.account.toUpperCase()}</span>
+            <span class="rec-date">${fmtDate(r.date)}</span>
+          </div>
+        </div>
+        <div class="rec-right">
+          <div class="rec-amount" style="color:${amtColor}">${amtSign}${fmt(r.amount)}</div>
+          ${actions}
+        </div>
+      </div>`;
+  }
+
+  // ── Filters ──────────────────────────────────────────────────────────────────
+  function setFilter(kind, value, btn) {
+    if (kind === 'type') {
+      filterType = value;
+      document.querySelectorAll('#screen-history .chip').forEach(b => b.classList.remove('active'));
+    } else {
+      filterAcc = value;
+      document.querySelectorAll('#screen-history .chip-out').forEach(b => b.classList.remove('active'));
+    }
+    btn.classList.add('active');
+    renderHistory();
+  }
+
+  // ── Modal ────────────────────────────────────────────────────────────────────
+  function openModal(type) {
+    editId = null;
+    formType = type || 'spend';
+    formAcc = 'cash';
+    document.getElementById('inp-amount').value = '';
+    document.getElementById('inp-note').value = '';
+    document.getElementById('modal-title').textContent = 'New Record';
+    document.getElementById('modal').classList.add('open');
+    updateToggles();
+    updateSaveBtn();
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    editId = null;
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal')) closeModal();
+  }
+
+  function setFormType(t) { formType = t; updateToggles(); updateSaveBtn(); }
+  function setFormAcc(a)  { formAcc = a;  updateToggles(); }
+
+  function updateToggles() {
+    const spendBtn   = document.getElementById('tog-spend');
+    const collectBtn = document.getElementById('tog-collect');
+    const cashBtn    = document.getElementById('tog-cash');
+    const bankBtn    = document.getElementById('tog-bank');
+
+    spendBtn.style.background   = formType==='spend'   ? '#FF5C6A' : 'transparent';
+    spendBtn.style.color        = formType==='spend'   ? '#fff'    : '#8B949E';
+    collectBtn.style.background = formType==='collect' ? '#10D98B' : 'transparent';
+    collectBtn.style.color      = formType==='collect' ? '#fff'    : '#8B949E';
+
+    cashBtn.style.background = formAcc==='cash' ? '#F5C842' : 'transparent';
+    cashBtn.style.color      = formAcc==='cash' ? '#0D1117' : '#8B949E';
+    bankBtn.style.background = formAcc==='bank' ? '#F5C842' : 'transparent';
+    bankBtn.style.color      = formAcc==='bank' ? '#0D1117' : '#8B949E';
+
+    const amtInp = document.getElementById('inp-amount');
+    amtInp.style.borderColor = amtInp.value
+      ? (formType==='spend' ? '#FF5C6A' : '#10D98B') : '#2D3748';
+  }
+
+  function updateSaveBtn() {
+    const val = parseFloat(document.getElementById('inp-amount').value);
+    const btn = document.getElementById('save-btn');
+    const lbl = document.getElementById('save-label');
+    const valid = val && val > 0;
+    btn.disabled = !valid;
+    btn.style.background = !valid ? '#2D3748' : (formType==='spend' ? '#FF5C6A' : '#10D98B');
+    lbl.textContent = editId ? 'Save Changes' : (formType==='spend' ? 'Record Spend' : 'Record Collect');
+    updateToggles();
+  }
+
+  function handleSave() {
+    const amt = parseFloat(document.getElementById('inp-amount').value);
+    if (!amt || amt <= 0) return;
+    const note = document.getElementById('inp-note').value.trim();
+    if (editId) {
+      records = records.map(r => r.id === editId
+        ? { ...r, type: formType, account: formAcc, amount: amt, note }
+        : r);
+    } else {
+      records.unshift({ id: uid(), type: formType, account: formAcc, amount: amt, note, date: new Date().toISOString() });
+    }
+    save();
+    closeModal();
+    renderAll();
+    if (document.getElementById('screen-history').classList.contains('active')) renderHistory();
+  }
+
+  // ── Edit / Delete ────────────────────────────────────────────────────────────
+  function editRecord(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    editId = id;
+    formType = r.type;
+    formAcc  = r.account;
+    document.getElementById('inp-amount').value = r.amount;
+    document.getElementById('inp-note').value   = r.note || '';
+    document.getElementById('modal-title').textContent = 'Edit Record';
+    document.getElementById('modal').classList.add('open');
+    updateToggles();
+    updateSaveBtn();
+  }
+
+  function deleteRecord(id) {
+    if (confirm('Delete this record? This cannot be undone.')) {
+      records = records.filter(r => r.id !== id);
+      save();
+      renderAll();
+      renderHistory();
+    }
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  renderAll();
+</script>
+</body>
+</html>
